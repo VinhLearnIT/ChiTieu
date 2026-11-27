@@ -163,12 +163,12 @@ function stats(){
   const l=mtx(S.m),inc=sum(l,'i'),exp=sum(l,'e'),cs=cats(l),ex=l.filter(x=>x.t==='e');
   const big=ex.length?Math.max(...ex.map(x=>x.a)):0;
   const now=ym(new Date()),dn=S.m===now?new Date().getDate():daysIn(S.m);
-  const six=[];for(let k=-5;k<=0;k++){const m=shift(S.m,k),t=mtx(m);six.push({m,l: Number(m.slice(5)),a:sum(t,'e'),b:sum(t,'i')})}
+  const six=[];for(let k=-5;k<=0;k++){const m=shift(S.m,k),t=mtx(m);six.push({m,l:'T'+Number(m.slice(5)),a:sum(t,'e'),b:sum(t,'i')})}
   const catRows=cs.length?cs.map(([c,v])=>`<tr><td><i class="dot" style="background:${col(c)};display:inline-block"></i> ${c}</td><td>${ex.filter(x=>x.c===c).length}</td><td>${fmt(v)}</td><td>${Math.round(v/exp*100)}%<span class="pb"><i style="width:${v/exp*100}%;background:${col(c)}"></i></span></td></tr>`).join(''):'<tr><td colspan="4" class="mut">Chưa có dữ liệu</td></tr>';
-  const monRows=six.slice().reverse().map(x=>`<tr class="${x.m===S.m?'cur':''}"><td>${mlabel(x.m).replace('Tháng ','T')}</td><td class="i">${fmt(x.b)}</td><td class="e">${fmt(x.a)}</td><td class="${x.b>=x.a?'i':'e'}">${x.b>=x.a?'+':'−'}${fmt(Math.abs(x.b-x.a))}</td></tr>`).join('');
+  const monRows=six.slice().reverse().map(x=>`<tr class="${x.m===S.m?'cur':''}"><td>${mlabel(x.m).replace('Tháng ','')}</td><td class="i">${fmt(x.b)}</td><td class="e">${fmt(x.a)}</td><td class="${x.b>=x.a?'i':'e'}">${x.b>=x.a?'+':'−'}${fmt(Math.abs(x.b-x.a))}</td></tr>`).join('');
   return `<div class="two"><div class="card ci"><span class="mut">▲ Tổng thu</span><b class="i">${fmt(inc)}</b></div><div class="card ce"><span class="mut">▼ Tổng chi</span><b class="e">${fmt(exp)}</b></div></div><div class="tiles"><div class="te2 mut">Chi TB/ngày<b>${fmt(exp/dn)}</b></div><div class="te2 mut">Chi lớn nhất<b>${fmt(big)}</b></div><div class="mut">Giao dịch<b>${l.length}</b></div></div>
   <div class="card sw"><h3>Thu và chi 6 tháng</h3>${bars(six,true)}<div class="leg"><span><i class="dot" style="background:var(--inc);display:inline-block"></i> Thu</span><span><i class="dot" style="background:var(--exp);display:inline-block"></i> Chi</span></div></div>
-  <div class="card sw"><h3>Bảng theo tháng</h3><div class="wrap"><table class="st"><tr><th>Tháng</th><th>Thu</th><th>Chi</th><th>Dư</th></tr>${monRows}</table></div></div>
+  <div class="card sw"><h3>Bảng theo tháng</h3><div class="wrap"><table class="st"><tr><th>Tháng</th><th>Thu</th><th>Chi</th><th>Số Dư</th></tr>${monRows}</table></div></div>
   <div class="card ce"><h3>Bảng theo danh mục · ${mlabel(S.m)}</h3><div class="wrap"><table class="st"><tr><th>Danh mục</th><th>Số GD</th><th>Số tiền</th><th>Tỉ lệ</th></tr>${catRows}</table></div></div>`;
 }
 function settings(){
