@@ -92,6 +92,7 @@ textarea{width:100%;height:90px;font:12px monospace;color:var(--ink);background:
 .st td{padding:10px 6px}
 .st tr.cur td{background:color-mix(in srgb,var(--acc) 10%,var(--sf));font-weight:700}
 .pb{display:block;height:6px;border-radius:4px;background:var(--line);margin-top:4px;overflow:hidden;min-width:50px}.pb i{display:block;height:100%}
+.tx{cursor:pointer}
 </style></head>
 <body>
 <div id="app"></div>
@@ -155,19 +156,19 @@ function list(){
   if(!l.length)return'<div class="card empty">Chưa có giao dịch trong tháng này. Nhấn + để thêm.</div>';
   const W=['CN','T2','T3','T4','T5','T6','T7'];let out='',cur='';
   l.forEach(x=>{if(x.d!==cur){cur=x.d;const dt=new Date(x.d+'T00:00:00');const dl=l.filter(y=>y.d===x.d),di=sum(dl,'i'),de=sum(dl,'e');out+=`<div class="day"><span>${W[dt.getDay()]}, ${x.d.slice(8)}/${x.d.slice(5,7)}</span><span>${di?`<span class="i">+${short(di)}</span> `:''}${de?`<span class="e">−${short(de)}</span>`:''}</span></div>`}
-    out+=`<div class="tx t${x.t}"><i class="bd ${x.t}">${x.t==='e'?'▼':'▲'}</i><div class="m"><div>${x.c}</div>${x.n?`<div class="mut">${esc(x.n)}</div>`:''}</div><div class="a ${x.t}">${x.t==='e'?'−':'+'}${fmt(x.a)}</div><button class="del" onclick="del(${x.id})" aria-label="Xóa">×</button></div>`});
+    out+=`<div class="tx t${x.t}" onclick="openSheet(${x.id})"><i class="bd ${x.t}">${x.t==='e'?'▼':'▲'}</i><div class="m"><div>${x.c}</div>${x.n?`<div class="mut">${esc(x.n)}</div>`:''}</div><div class="a ${x.t}">${x.t==='e'?'−':'+'}${fmt(x.a)}</div><button class="del" onclick="event.stopPropagation();openSheet(${x.id})" aria-label="Sửa">✎</button><button class="del" onclick="event.stopPropagation();del(${x.id})" aria-label="Xóa">×</button></div>`});
   return out;
 }
 function stats(){
   const l=mtx(S.m),inc=sum(l,'i'),exp=sum(l,'e'),cs=cats(l),ex=l.filter(x=>x.t==='e');
   const big=ex.length?Math.max(...ex.map(x=>x.a)):0;
   const now=ym(new Date()),dn=S.m===now?new Date().getDate():daysIn(S.m);
-  const six=[];for(let k=-5;k<=0;k++){const m=shift(S.m,k),t=mtx(m);six.push({m,l:'T'+Number(m.slice(5)),a:sum(t,'e'),b:sum(t,'i')})}
+  const six=[];for(let k=-5;k<=0;k++){const m=shift(S.m,k),t=mtx(m);six.push({m,l: Number(m.slice(5)),a:sum(t,'e'),b:sum(t,'i')})}
   const catRows=cs.length?cs.map(([c,v])=>`<tr><td><i class="dot" style="background:${col(c)};display:inline-block"></i> ${c}</td><td>${ex.filter(x=>x.c===c).length}</td><td>${fmt(v)}</td><td>${Math.round(v/exp*100)}%<span class="pb"><i style="width:${v/exp*100}%;background:${col(c)}"></i></span></td></tr>`).join(''):'<tr><td colspan="4" class="mut">Chưa có dữ liệu</td></tr>';
   const monRows=six.slice().reverse().map(x=>`<tr class="${x.m===S.m?'cur':''}"><td>${mlabel(x.m).replace('Tháng ','T')}</td><td class="i">${fmt(x.b)}</td><td class="e">${fmt(x.a)}</td><td class="${x.b>=x.a?'i':'e'}">${x.b>=x.a?'+':'−'}${fmt(Math.abs(x.b-x.a))}</td></tr>`).join('');
   return `<div class="two"><div class="card ci"><span class="mut">▲ Tổng thu</span><b class="i">${fmt(inc)}</b></div><div class="card ce"><span class="mut">▼ Tổng chi</span><b class="e">${fmt(exp)}</b></div></div><div class="tiles"><div class="te2 mut">Chi TB/ngày<b>${fmt(exp/dn)}</b></div><div class="te2 mut">Chi lớn nhất<b>${fmt(big)}</b></div><div class="mut">Giao dịch<b>${l.length}</b></div></div>
   <div class="card sw"><h3>Thu và chi 6 tháng</h3>${bars(six,true)}<div class="leg"><span><i class="dot" style="background:var(--inc);display:inline-block"></i> Thu</span><span><i class="dot" style="background:var(--exp);display:inline-block"></i> Chi</span></div></div>
-  <div class="card sw"><h3>Bảng theo tháng</h3><div class="wrap"><table class="st"><tr><th>Tháng</th><th>Thu</th><th>Chi</th><th>Chênh lệch</th></tr>${monRows}</table></div></div>
+  <div class="card sw"><h3>Bảng theo tháng</h3><div class="wrap"><table class="st"><tr><th>Tháng</th><th>Thu</th><th>Chi</th><th>Dư</th></tr>${monRows}</table></div></div>
   <div class="card ce"><h3>Bảng theo danh mục · ${mlabel(S.m)}</h3><div class="wrap"><table class="st"><tr><th>Danh mục</th><th>Số GD</th><th>Số tiền</th><th>Tỉ lệ</th></tr>${catRows}</table></div></div>`;
 }
 function settings(){
@@ -185,24 +186,24 @@ const mv=k=>{S.m=shift(S.m,k);render()};
 function fmtIn(el){const v=el.value.replace(/\D/g,'');el.value=v?Number(v).toLocaleString('vi-VN'):''}
 const num=s=>Number(String(s).replace(/\D/g,''))||0;
 function toast(msg,act){const t=$('#toast');t.innerHTML=esc(msg)+(act?`<button onclick="undo()">Hoàn tác</button>`:'');t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),act?5000:2200)}
-function openSheet(){
-  $('#shb').innerHTML=`<button class="cx" onclick="closeSheet()" aria-label="Đóng">×</button><h3>Thêm giao dịch</h3>
+function openSheet(id){const e=S.tx.find(x=>x.id===id);S.edit=e?e.id:null;
+  $('#shb').innerHTML=`<button class="cx" onclick="closeSheet()" aria-label="Đóng">×</button><h3>${e?'Sửa giao dịch':'Thêm giao dịch'}</h3>
   <div class="seg"><button id="bt-e" onclick="setType('e')">Chi tiêu</button><button id="bt-i" onclick="setType('i')">Thu nhập</button></div>
   <label for="amt">Số tiền (₫)</label><input id="amt" inputmode="numeric" placeholder="0" oninput="fmtIn(this)">
   <label for="cat">Danh mục</label><select id="cat"></select>
   <label for="dt">Ngày</label><input id="dt" type="date" value="${today()}">
   <label for="nt">Ghi chú</label><input id="nt" placeholder="Không bắt buộc" maxlength="80">
-  <button class="pri" onclick="add()">Lưu giao dịch</button>`;
-  setType('e');$('#sheet').classList.add('show');setTimeout(()=>$('#amt').focus(),50);
+  <button class="pri" onclick="add()">${e?'Lưu thay đổi':'Lưu giao dịch'}</button>`;
+  setType(e?e.t:'e');if(e){$('#amt').value=e.a.toLocaleString('vi-VN');$('#cat').value=e.c;$('#dt').value=e.d;$('#nt').value=e.n||''}$('#sheet').classList.add('show');setTimeout(()=>$('#amt').focus(),50);
 }
 function setType(t){S.type=t;$('#bt-e').className=t==='e'?'on':'';$('#bt-i').className=t==='i'?'on':'';const p=document.querySelector('#shb .pri');p.style.background=t==='e'?'var(--exp)':'var(--inc)';p.style.color=t==='e'?'#fff':'var(--onacc)';$('#amt').style.color=t==='e'?'var(--exp)':'var(--inc)';
   $('#cat').innerHTML=Object.keys(t==='e'?EC:IC).map(c=>`<option>${c}</option>`).join('')}
-const closeSheet=()=>$('#sheet').classList.remove('show');
+const closeSheet=()=>{S.edit=null;$('#sheet').classList.remove('show')};
 function add(){
   const a=num($('#amt').value);if(!a){$('#amt').focus();toast('Nhập số tiền lớn hơn 0');return}
   const d=$('#dt').value||today();
-  S.tx.push({id:Date.now(),t:S.type,a,c:$('#cat').value,d,n:$('#nt').value.trim()});
-  save();S.m=d.slice(0,7);closeSheet();render();toast('Đã lưu giao dịch');
+  const rec={id:S.edit||Date.now(),t:S.type,a,c:$('#cat').value,d,n:$('#nt').value.trim()};const k=S.tx.findIndex(x=>x.id===S.edit);if(S.edit&&k>=0)S.tx[k]=rec;else S.tx.push(rec);const msg=S.edit?'Đã cập nhật giao dịch':'Đã lưu giao dịch';
+  save();S.m=d.slice(0,7);closeSheet();render();toast(msg);
 }
 function del(id){const i=S.tx.findIndex(x=>x.id===id);if(i<0)return;last=S.tx.splice(i,1)[0];save();render();toast('Đã xóa giao dịch',1)}
 function undo(){if(last){S.tx.push(last);last=null;save();render();$('#toast').classList.remove('show')}}
