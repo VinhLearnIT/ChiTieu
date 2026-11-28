@@ -169,7 +169,7 @@ function stats(){
   return `<div class="two"><div class="card ci"><span class="mut">▲ Tổng thu</span><b class="i">${fmt(inc)}</b></div><div class="card ce"><span class="mut">▼ Tổng chi</span><b class="e">${fmt(exp)}</b></div></div><div class="tiles"><div class="te2 mut">Chi TB/ngày<b>${fmt(exp/dn)}</b></div><div class="te2 mut">Chi lớn nhất<b>${fmt(big)}</b></div><div class="mut">Giao dịch<b>${l.length}</b></div></div>
   <div class="card sw"><h3>Thu và chi 6 tháng</h3>${bars(six,true)}<div class="leg"><span><i class="dot" style="background:var(--inc);display:inline-block"></i> Thu</span><span><i class="dot" style="background:var(--exp);display:inline-block"></i> Chi</span></div></div>
   <div class="card sw"><h3>Bảng theo tháng</h3><div class="wrap"><table class="st"><tr><th>Tháng</th><th>Thu</th><th>Chi</th><th>Số Dư</th></tr>${monRows}</table></div></div>
-  <div class="card ce"><h3>Bảng theo danh mục · ${mlabel(S.m)}</h3><div class="wrap"><table class="st"><tr><th>Danh mục</th><th>Số GD</th><th>Số tiền</th><th>Tỉ lệ</th></tr>${catRows}</table></div></div>`;
+  <div class="card ce w"><h3>Bảng theo danh mục · ${mlabel(S.m)}</h3><div class="wrap"><table class="st"><tr><th>Danh mục</th><th>Số GD</th><th>Số tiền</th><th>Tỉ lệ</th></tr>${catRows}</table></div></div>`;
 }
 function settings(){
   return `<div class="card"><h3>Ngân sách chi mỗi tháng</h3><input id="bud" inputmode="numeric" placeholder="Ví dụ: 10.000.000" value="${S.budget?S.budget.toLocaleString('vi-VN'):''}" oninput="fmtIn(this)"><button class="pri" onclick="setBud()">Lưu ngân sách</button></div>
